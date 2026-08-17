@@ -24,6 +24,6 @@
 
 **E08:** Zep không ghi đè mà **tách phạm vi** — BLUEBIRD-42 dùng TypeScript/NestJS, ORCHID-27 vẫn Python. Nhờ vậy E02 và E08 pass bằng cùng một Context Block; ghi đè thô sẽ fail E02.
 
-**E10:** sau 8 lần nén, turn chứa constraint bị evict khỏi `<RECENT_TURNS>`, nhưng `REVIEW-DEADLINE-1600 / Friday / 16:00` sống trong `<DURABLE_NOTES>` nhờ khớp từ khoá `constraint` và regex mã hoa. Buffer thuần sẽ tràn; tóm tắt văn xuôi làm mất `16:00` trước tiên.
+**E10:** sau 8 lần nén, turn chứa constraint bị evict khỏi `<RECENT_TURNS>`, nhưng `REVIEW-DEADLINE-1600 / Friday / 16:00` sống trong `<DURABLE_NOTES>` nhờ khớp từ khoá và regex mã hoa. Buffer thuần sẽ tràn; tóm tắt văn xuôi mất `16:00` trước tiên.
 
-*`Dockerfile`: thêm `PIP_DEFAULT_TIMEOUT`/`PIP_RETRIES` vá lỗi mạng khi build. Chi tiết: `docs/GIAI_THICH_DU_AN.md`.*
+*`Dockerfile`: thêm `PIP_DEFAULT_TIMEOUT`/`PIP_RETRIES` vá read timeout PyPI khi build.*

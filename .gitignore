@@ -9,3 +9,4 @@ data/golden*.json
 .venv/
 venv/
 reports/run.log
+docs/
