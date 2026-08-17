@@ -107,8 +107,47 @@ def retrieve_for_case(
       * Keep user_id and thread_id from the loaded case.
       * Finish with memory.assemble_context(layers).
     """
-    _ = (memory, case, extra_messages, settings, ShortTermMemory)
-    raise NotImplementedError("BONUS TODO: run student retrieval for the loaded case")
+    layers = {"short_term": "", "long_term": "", "episodic": "", "semantic": ""}
+
+    # --- short-term: current thread, same settings the evaluator uses ---------
+    stm = ShortTermMemory(strategy="sliding", max_recent_messages=6, pressure_tokens=450)
+    seed_messages = case.get("fixture_messages")
+    if not seed_messages:
+        # E01 and friends have no fixture; replay the real thread instead.
+        seed_messages = []
+        for user in load_dataset()["users"]:
+            if user["user_id"] != case.get("user_id"):
+                continue
+            for session in user.get("sessions", []):
+                if session["thread_id"] == case.get("thread_id"):
+                    seed_messages = session["messages"]
+                    break
+    for msg in list(seed_messages) + list(extra_messages or []):
+        stm.add(msg["role"], msg["content"])
+    layers["short_term"] = stm.render()
+
+    # --- durable layers: mixed declares its own set, others use their own -----
+    expected = case.get("expected_layer", "")
+    if expected == "mixed":
+        wanted = case.get("retrieve_layers") or ["long_term", "semantic"]
+    else:
+        wanted = [expected]
+
+    query = case.get("query", "")
+    user_id = case.get("user_id", "")
+    thread_id = case.get("thread_id", "")
+
+    if "long_term" in wanted and user_id and thread_id:
+        layers["long_term"] = memory.retrieve_long_term(
+            user_id=user_id, thread_id=thread_id, query=query
+        )
+    if "episodic" in wanted and user_id:
+        layers["episodic"] = memory.retrieve_episodic(user_id, query)
+    if "semantic" in wanted:
+        layers["semantic"] = memory.retrieve_semantic(settings.semantic_graph_id, query)
+
+    merged, budget = memory.assemble_context(layers)
+    return {"merged_context": merged, "layers": layers, "budget": budget}
 
 
 def main() -> None:
